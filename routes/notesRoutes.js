@@ -3,13 +3,15 @@ const noteRoute = express.Router();
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const dbPath = path.join(__dirname, '../db/db.json');
 
-const dbPath = path.join(__dirname, './db/db.json');
 
-noteRoute.get('/api/notes', (req, res) => {
+noteRoute.get('/notes', (req, res) => {
+  
   fs.readFile(dbPath, 'utf-8', (err, data) => {
-    if(err) {
-      return res.status(500).json({ error: 'Internal Server Error'});
+    if (err) {
+      
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
 
     const notes = JSON.parse(data);
@@ -17,8 +19,7 @@ noteRoute.get('/api/notes', (req, res) => {
   });
 });
 
-
-noteRoute.post('/api/notes', (req, res) => {
+noteRoute.post('/notes', (req, res) => {
   fs.readFile(dbPath, 'utf-8', (err, data) => {
     if(err) {
       return res.status(500).json({ error: 'Internal Server Error'});
@@ -42,4 +43,26 @@ noteRoute.post('/api/notes', (req, res) => {
     });
   });
 });
+
+noteRoute.delete('/notes/:id', (req, res) => {
+  const noteId = req.params.id;
+
+  fs.readFile(dbPath, 'utf-8', (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    let notes = JSON.parse(data);
+
+    notes = notes.filter((note) => note.id !== noteId);
+
+    fs.writeFile(dbPath, JSON.stringify(notes), (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+      res.json({ success: true });
+    });
+  });
+});
+
 module.exports = noteRoute;
